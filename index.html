@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Nexus | YT Finder</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body { background: radial-gradient(circle at top right, #1e293b, #020617); }
+    .glass { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.1); }
+    .neon-glow:focus { border-color: #6366f1; box-shadow: 0 0 20px rgba(99, 102, 241, 0.4); }
+  </style>
+</head>
+<body class="min-h-screen text-slate-100 font-sans antialiased flex items-center justify-center p-6">
+  <div class="w-full max-w-xl glass rounded-3xl p-8 shadow-2xl transition-all duration-500">
+    <div class="flex flex-col items-center mb-10 text-center">
+      <div class="h-1 w-16 bg-indigo-500 rounded-full mb-4"></div>
+      <h1 class="text-3xl font-black tracking-tighter italic">NEXUS<span class="text-indigo-400">CORE</span></h1>
+      <p class="text-slate-400 text-sm mt-1 uppercase tracking-widest">Advanced Media Metadata</p>
+    </div>
+
+    <form id="videoForm" class="space-y-6">
+      <div class="relative group">
+        <input id="videoUrl" type="url" required placeholder="Paste YouTube link here..." 
+          class="w-full bg-slate-900/80 p-4 rounded-2xl border border-slate-700 neon-glow outline-none transition-all text-slate-200 placeholder-slate-500" />
+      </div>
+      <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-4 rounded-2xl transition-all transform active:scale-95 shadow-lg shadow-indigo-500/20">
+        INITIALIZE SCAN
+      </button>
+    </form>
+
+    <div id="result" class="mt-10 hidden border-t border-slate-800 pt-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
+      <div class="relative overflow-hidden rounded-2xl border border-slate-700 mb-6 group">
+        <img id="thumbnailPreview" src="" alt="Thumbnail" class="w-full h-auto object-cover transform transition-transform duration-700 group-hover:scale-105">
+        <div class="absolute top-3 right-3 bg-indigo-600/90 text-[10px] font-bold px-2 py-1 rounded-md">PREVIEW</div>
+      </div>
+
+      <div class="flex items-center gap-4 p-4 bg-slate-800/30 rounded-2xl border border-white/5">
+        <img id="channelIcon" src="" alt="Icon" class="w-12 h-12 rounded-full border border-indigo-500/30">
+        <div class="flex-1 overflow-hidden">
+          <p id="channelName" class="font-bold text-lg truncate"></p>
+          <p id="channelHandle" class="text-indigo-400 text-xs font-mono"></p>
+        </div>
+      </div>
+
+      <div class="mt-6">
+        <a id="playBtn" href="#" class="flex items-center justify-center gap-2 w-full bg-white text-slate-900 font-black py-4 rounded-2xl hover:bg-slate-200 transition-colors uppercase tracking-tight">
+          Launch Cinema Player
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const form = document.getElementById('videoForm');
+    const resultDiv = document.getElementById('result');
+    const thumbEl = document.getElementById('thumbnailPreview');
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const url = document.getElementById('videoUrl').value.trim();
+      
+      try {
+        const res = await fetch(`https://www.youtube.com/oembed?url=${encodeURIComponent(url)}&format=json`);
+        const data = await res.json();
+
+        // Extract ID for Professional HD Thumbnail
+        const videoId = extractVideoId(url);
+        thumbEl.src = `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`;
+        
+        document.getElementById('channelName').textContent = data.author_name;
+        document.getElementById('playBtn').href = `player.html?video=${encodeURIComponent(url)}`;
+        
+        const handle = extractHandle(data.author_url);
+        document.getElementById('channelHandle').textContent = handle || "@channel";
+
+        // Professional avatar placeholder
+        document.getElementById('channelIcon').src = `https://ui-avatars.com/api/?name=${encodeURIComponent(data.author_name)}&background=6366f1&color=fff&bold=true`;
+        
+        resultDiv.classList.remove('hidden');
+      } catch (err) {
+        alert('Data retrieval failed. Please check the URL.');
+      }
+    });
+
+    function extractVideoId(url) {
+      const match = url.match(/(?:youtu\.be\/|youtube\.com\/(?:.*v=|\/shorts\/|live\/))([^?&"'>]+)/);
+      return match ? match[1] : null;
+    }
+
+    function extractHandle(url) {
+      try {
+        const u = new URL(url);
+        const parts = u.pathname.split('/').filter(Boolean);
+        return parts[0]?.startsWith('@') ? parts[0] : null;
+      } catch { return null; }
+    }
+  </script>
+</body>
+</html>

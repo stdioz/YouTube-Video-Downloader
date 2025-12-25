@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Nexus | Cinema Player</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body { background-color: #020617; }
+    .glow-container { box-shadow: 0 0 60px -15px rgba(99, 102, 241, 0.3); }
+  </style>
+</head>
+<body class="min-h-screen text-slate-100 p-4 md:p-10">
+  <div class="max-w-6xl mx-auto">
+    <header class="flex justify-between items-center mb-8">
+      <div class="flex items-center gap-3">
+        <div class="w-2 h-2 bg-indigo-500 rounded-full animate-pulse"></div>
+        <span class="font-mono text-xs uppercase tracking-widest text-slate-400">Secure Playback Active</span>
+      </div>
+      <a href="index.html" class="px-6 py-2 bg-slate-900 border border-slate-700 rounded-full text-sm hover:bg-slate-800 transition-all">
+        ← Exit Player
+      </a>
+    </header>
+
+    <div id="videoContainer" class="w-full aspect-video bg-black rounded-3xl overflow-hidden glow-container border border-slate-800">
+      <div class="flex items-center justify-center h-full">
+        <div class="animate-spin rounded-full h-10 w-10 border-t-2 border-indigo-500"></div>
+      </div>
+    </div>
+
+    <footer class="mt-8 grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
+      <div class="p-6 bg-slate-900/40 rounded-3xl border border-white/5">
+        <h2 class="text-white font-bold tracking-tight">Cinema Interface v1.0</h2>
+        <p class="text-slate-500 text-xs mt-1">Direct stream established via NexusCore API.</p>
+      </div>
+      <div class="flex justify-end gap-3">
+        <div class="px-4 py-2 bg-indigo-900/20 text-indigo-400 text-[10px] font-bold rounded-lg border border-indigo-500/20 uppercase tracking-tighter">HD Enabled</div>
+        <div class="px-4 py-2 bg-slate-800 text-slate-400 text-[10px] font-bold rounded-lg uppercase tracking-tighter">Autoplay On</div>
+      </div>
+    </footer>
+  </div>
+
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const videoUrl = params.get('video');
+
+    function extractVideoId(url) {
+      try {
+        const match = url.match(/(?:youtu\.be\/|youtube\.com\/(?:.*v=|\/shorts\/|live\/))([^?&"'>]+)/);
+        return match ? match[1] : null;
+      } catch { return null; }
+    }
+
+    const videoId = extractVideoId(videoUrl);
+    const container = document.getElementById('videoContainer');
+
+    if (videoId) {
+      container.innerHTML = `
+        <iframe 
+          width="100%" 
+          height="100%" 
+          src="https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0&modestbranding=1" 
+          frameborder="0" 
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+          allowfullscreen>
+        </iframe>`;
+    } else {
+      container.innerHTML = `
+        <div class="flex flex-col items-center justify-center h-full text-slate-600">
+          <p class="font-mono text-sm uppercase tracking-tighter">ERROR: INVALID_STREAM_SOURCE</p>
+        </div>`;
+    }
+  </script>
+</body>
+</html>
