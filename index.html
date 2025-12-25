@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>YouTube Channel Finder</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="min-h-screen bg-slate-50 text-slate-900">
+  <div class="max-w-xl mx-auto p-6 mt-10 bg-white rounded-xl shadow">
+    <h1 class="text-2xl font-bold mb-4">YouTube Channel Finder</h1>
+    <form id="videoForm" class="space-y-4">
+      <input id="videoUrl" type="url" required placeholder="Paste YouTube video link" class="w-full p-2 border rounded" />
+      <button type="submit" class="bg-indigo-600 text-white px-4 py-2 rounded">Get Channel Info</button>
+    </form>
+
+    <div id="result" class="mt-6 hidden">
+      <h2 class="text-lg font-bold mb-2">Channel Info</h2>
+      <div class="flex items-center gap-3 mb-2">
+        <img id="channelIcon" src="" alt="Channel Icon" class="w-12 h-12 rounded-full border hidden">
+        <div>
+          <p id="channelName" class="font-semibold"></p>
+          <p id="channelHandle" class="text-gray-600"></p>
+          <a id="channelLink" href="#" target="_blank" class="text-sm text-blue-600 underline">Visit Channel</a>
+        </div>
+      </div>
+      <a id="playBtn" href="#" class="inline-block mt-4 bg-green-600 text-white px-4 py-2 rounded">Play Video</a>
+    </div>
+  </div>
+
+  <script>
+    const form = document.getElementById('videoForm');
+    const videoUrlInput = document.getElementById('videoUrl');
+    const resultDiv = document.getElementById('result');
+    const channelNameEl = document.getElementById('channelName');
+    const channelHandleEl = document.getElementById('channelHandle');
+    const channelLinkEl = document.getElementById('channelLink');
+    const channelIconEl = document.getElementById('channelIcon');
+    const playBtn = document.getElementById('playBtn');
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const url = videoUrlInput.value.trim();
+      try {
+        const res = await fetch(`https://www.youtube.com/oembed?url=${encodeURIComponent(url)}&format=json`);
+        const data = await res.json();
+
+        channelNameEl.textContent = data.author_name;
+        channelLinkEl.href = data.author_url;
+        playBtn.href = `player.html?video=${encodeURIComponent(url)}`;
+
+        // Extract handle if present in URL like /@handle
+        const handle = extractHandle(data.author_url);
+        channelHandleEl.textContent = handle ? `Handle: ${handle}` : "Handle: Not available";
+
+        // Default channel icon
+        channelIconEl.src = "https://www.youtube.com/s/desktop/fe2e91e1/img/favicon_144.png";
+        channelIconEl.classList.remove('hidden');
+
+        resultDiv.classList.remove('hidden');
+      } catch (err) {
+        alert('Invalid YouTube link or network error');
+      }
+    });
+
+    function extractHandle(url) {
+      try {
+        const u = new URL(url);
+        const parts = u.pathname.split('/').filter(Boolean);
+        if (parts[0] && parts[0].startsWith('@')) return parts[0];
+      } catch {}
+      return null;
+    }
+  </script>
+</body>
+</html>
